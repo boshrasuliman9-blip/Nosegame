@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>🌟 NoseGame للأطفال 🌟</title>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&display=swap" rel="stylesheet">
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  background: linear-gradient(160deg, #a8edea, #fed6e3);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  font-family: 'Fredoka One', Arial, sans-serif;
+  overflow: hidden;
+}
+
+h1 {
+  font-size: 32px;
+  margin-bottom: 12px;
+  letter-spacing: 3px;
+  background: linear-gradient(90deg,#ff6b6b,#feca57,#48dbfb,#ff9ff3,#54a0ff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,.15));
+}
+
+#wrapper {
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+/* ── Game viewport ── */
+#gc {
+  position: relative;
+  width: 640px;
+  height: 480px;
+  border-radius: 20px;
+  overflow: hidden;
+  border: 5px solid #fff;
+  box-shadow: 0 8px 40px rgba(0,0,0,.2), 0 0 0 3px #feca57;
+}
+#cv { display:block; width:640px; height:480px; }
+
+/* ── Side panel ── */
+#panel {
+  width: 180px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.box {
+  background: #fff;
+  border-radius: 16px;
+  padding: 12px 14px;
+  text-align: center;
+  box-shadow: 0 4px 14px rgba(0,0,0,.1);
+}
+.box label {
+  display: block;
+  font-size: 11px;
+  color: #aaa;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: 2px;
+}
+.val { font-size: 40px; font-weight: bold; line-height: 1.1; }
+.val.sm { font-size: 24px; }
+.val.score-color { color: #ff6b6b; }
+.val.best-color  { color: #feca57; text-shadow: 0 1px 3px rgba(0,0,0,.15); }
+.val.lives-color { font-size: 22px; }
+.val.lvl-color   { color: #54a0ff; }
+
+#dot {
+  display: inline-block;
+  width: 11px; height: 11px;
+  border-radius: 50%;
+  background: #ff4444;
+  box-shadow: 0 0 7px #ff4444;
+  vertical-align: middle;
+  margin-left: 5px;
+  transition: background .3s, box-shadow .3s;
+}
+#dot.on { background:#2ed573; box-shadow:0 0 7px #2ed573; }
+#dtxt { font-size:12px; color:#999; vertical-align:middle; }
+
+/* ── Restart button ── */
+#btn-restart {
+  width: 100%;
+  padding: 14px 0;
+  background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+  border: none;
+  border-radius: 14px;
+  color: #fff;
+  font-family: 'Fredoka One', Arial, sans-serif;
+  font-size: 18px;
+  cursor: pointer;
+  transition: transform .1s, box-shadow .15s;
+  box-shadow: 0 5px 0 #c0392b, 0 8px 20px rgba(238,90,36,.35);
+  letter-spacing: 1px;
+}
+#btn-restart:hover { transform:translateY(-3px); box-shadow:0 8px 0 #c0392b, 0 12px 24px rgba(238,90,36,.4); }
+#btn-restart:active { transform:translateY(3px); box-shadow:0 2px 0 #c0392b; }
+
+.hint {
+  font-size: 12px;
+  color: #bbb;
+  line-height: 1.8;
+  text-align: right;
+}
+.hint b { color: #ff6b6b; }
+
+/* ── Game Over overlay ── */
+#gameover {
+  display: none;
+  position: absolute;
+  inset: 0;
+  background: rgba(0,0,0,.55);
+  backdrop-filter: blur(6px);
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+}
+#gameover.show {
+  display: flex;
+  animation: popIn .4s cubic-bezier(.175,.885,.32,1.275);
+}
+@keyframes popIn {
+  from { opacity:0; transform:scale(.7); }
+  to   { opacity:1; transform:scale(1); }
+}
+#go-card {
+  background: #fff;
+  border-radius: 24px;
+  padding: 34px 44px;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0,0,0,.25);
+  min-width: 300px;
+  border-top: 8px solid #ff6b6b;
+}
+#go-card h2 { font-size: 36px; margin-bottom: 6px; }
+#go-card .go-emoji { font-size: 64px; margin-bottom: 8px; display:block; }
+#go-score {
+  font-size: 58px;
+  color: #ff6b6b;
+  line-height: 1;
+}
+#go-score span { display:block; font-size:13px; color:#bbb; font-family:Arial; font-weight:normal; margin-bottom:4px; }
+#go-best { font-size:17px; color:#aaa; margin:10px 0 26px; }
+#go-best b { color:#feca57; }
+#go-btn {
+  width: 100%;
+  padding: 16px 0;
+  background: linear-gradient(135deg, #ff6b6b, #ee5a24);
+  border: none;
+  border-radius: 14px;
+  color: #fff;
+  font-family: 'Fredoka One', Arial, sans-serif;
+  font-size: 22px;
+  cursor: pointer;
+  box-shadow: 0 5px 0 #c0392b;
+  transition: transform .1s, box-shadow .1s;
+  letter-spacing: 1px;
+}
+#go-btn:hover { transform:translateY(-3px); box-shadow:0 8px 0 #c0392b; }
+#go-btn:active { transform:translateY(3px); box-shadow:0 2px 0 #c0392b; }
+
+/* ── Loading ── */
+#loading {
+  position: fixed; inset: 0;
+  background: linear-gradient(160deg,#a8edea,#fed6e3);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  z-index: 99;
+  gap: 16px;
+}
+#loading h2 { font-family:'Fredoka One',Arial; font-size:22px; color:#ff6b6b; }
+#loading p  { font-size:14px; color:#999; font-family:Arial; }
+.spinner {
+  width: 54px; height: 54px;
+  border: 5px solid #feca57;
+  border-top-color: #ff6b6b;
+  border-radius: 50%;
+  animation: spin .7s linear infinite;
+}
+@keyframes spin { to { transform:rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<div id="loading">
+  <div class="spinner"></div>
+  <h2>🌟 جاري التحميل...</h2>
+  <p>يرجى السماح بالوصول إلى الكاميرا</p>
+</div>
+
+<h1>🌟 NOSE GAME 🌟</h1>
+
+<div id="wrapper">
+  <div id="gc">
+    <canvas id="cv" width="640" height="480"></canvas>
+
+    <div id="gameover">
+      <div id="go-card">
+        <span class="go-emoji" id="go-emoji">😢</span>
+        <h2 style="color:#ff6b6b">انتهت اللعبة!</h2>
+        <div id="go-score"><span>نقاطك</span><span id="go-score-val">0</span></div>
+        <div id="go-best">أعلى نقاط: <b id="go-best-val">0</b> ⭐</div>
+        <button id="go-btn" onclick="restartGame()">↺ العب مجدداً!</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="panel">
+    <div class="box"><label>⭐ النقاط</label><div class="val score-color" id="sc">0</div></div>
+    <div class="box"><label>🏆 أعلى نقاط</label><div class="val best-color" id="hi">0</div></div>
+    <div class="box"><label>❤️ الأرواح</label><div class="val lives-color" id="lv">❤️❤️❤️</div></div>
+    <div class="box"><label>🚀 المستوى</label><div class="val lvl-color" id="lvl">1</div></div>
+    <div class="box">
+      <span id="dot"></span>
+      <span id="dtxt">لا يوجد وجه</span>
+    </div>
+    <button id="btn-restart" onclick="restartGame()">↺ RESTART</button>
+    <div class="box hint">حرك <b>أنفك</b> لتحريك النجمة 🌟<br>تجنب العوائق الملونة!</div>
+  </div>
+</div>
+
+<video id="vid" playsinline style="display:none"></video>
+
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4/face_mesh.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils@0.3/camera_utils.js" crossorigin="anonymous"></script>
+
+<script>
+// ─── Canvas ────────────────────────────────────────────────────────────────
+const cv  = document.getElementById('cv');
+const ctx = cv.getContext('2d');
+const W = 640, H = 480;
+
+// ─── Audio (Web Audio API) ──────────────────────────────────────────────────
+const AC = new (window.AudioContext || window.webkitAudioContext)();
+function beep(freq, type, vol, dur, delay=0) {
+  const o = AC.createOscillator();
+  const g = AC.createGain();
+  o.connect(g); g.connect(AC.destination);
+  o.type = type; o.frequency.value = freq;
+  g.gain.setValueAtTime(vol, AC.currentTime + delay);
+  g.gain.exponentialRampToValueAtTime(.001, AC.currentTime + delay + dur);
+  o.start(AC.currentTime + delay);
+  o.stop(AC.currentTime + delay + dur + .05);
+}
+function sndScore()  { beep(880,'sine',.3,.1); beep(1100,'sine',.2,.1,.1); }
+function sndHit()    { beep(200,'sawtooth',.3,.15); beep(150,'sawtooth',.2,.1,.1); }
+function sndLevelUp(){ [0,.1,.2,.3].forEach((d,i)=>{beep([523,659,784,1047][i],'sine',.25,.15,d);}); }
+function sndOver()   { [0,.18,.36].forEach((d,i)=>{beep([400,320,220][i],'sawtooth',.25,.2,d);}); }
+
+// ─── Clouds ────────────────────────────────────────────────────────────────
+const clouds = Array.from({length:5}, (_,i) => ({
+  x: i * 140 + 40, y: 30 + Math.random()*80,
+  w: 80+Math.random()*60, spd: .25+Math.random()*.2
+}));
+
+// ─── Face tracking ─────────────────────────────────────────────────────────
+let noseX=W/2, noseY=H/2, faceOn=false, faceBox=null, lastImg=null;
+
+// ─── Game state ─────────────────────────────────────────────────────────────
+const S = {WAIT:0, PLAY:1, OVER:2};
+let state=S.WAIT, score=0, best=0, lives=3, level=1, tick=0;
+
+// Ball (smiley star character)
+const ball = { x:W/2, y:H/2, r:24, tx:W/2, ty:H/2, squish:1, squishV:0 };
+let invincible=false, invF=0;
+
+// Obstacle color palette
+const OBS_COLORS = [
+  ['#ff6b6b','#ee5a24'], ['#feca57','#f9ca24'],
+  ['#48dbfb','#0abde3'], ['#ff9ff3','#f368e0'],
+  ['#54a0ff','#2e86de'], ['#1dd1a1','#10ac84'],
+];
+let colorIdx = 0;
+
+let obs=[], parts=[], toasts=[], spawnIn=90;
+
+// ─── MediaPipe ──────────────────────────────────────────────────────────────
+const faceMesh = new FaceMesh({
+  locateFile: f => `https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh@0.4/${f}`
+});
+faceMesh.setOptions({ maxNumFaces:1, refineLandmarks:true, minDetectionConfidence:.5, minTrackingConfidence:.5 });
+
+faceMesh.onResults(res => {
+  lastImg = res.image;
+  faceOn = !!(res.multiFaceLandmarks?.[0]);
+  if (faceOn) {
+    const lms = res.multiFaceLandmarks[0];
+    noseX = (1 - lms[4].x) * W;
+    noseY = lms[4].y * H;
+    const xs = lms.map(l=>(1-l.x)*W), ys = lms.map(l=>l.y*H);
+    faceBox = { x1:Math.min(...xs),y1:Math.min(...ys),x2:Math.max(...xs),y2:Math.max(...ys) };
+    if (state !== S.PLAY) startGame();
+  } else { faceBox = null; }
+  updatePanel();
+});
+
+const vid = document.getElementById('vid');
+new Camera(vid, {
+  onFrame: async () => { await faceMesh.send({image:vid}); },
+  width:640, height:480
+}).start().then(()=>{
+  document.getElementById('loading').style.display='none';
+}).catch(err=>{
+  document.getElementById('loading').innerHTML=
+    `<h2 style="color:#ff6b6b">❌ خطأ في الكاميرا</h2><p>${err.message}</p>`;
+});
+
+// ─── Game functions ──────────────────────────────────────────────────────────
+function startGame() {
+  state=S.PLAY; score=0; lives=3; level=1; tick=0; colorIdx=0;
+  obs=[]; parts=[]; toasts=[]; spawnIn=90;
+  ball.x=W/2; ball.y=H/2; ball.squish=1; ball.squishV=0;
+  invincible=false; invF=0;
+  updatePanel();
+  toast('يالله انطلق! 🚀', '#ff6b6b', 80);
+}
+
+function updatePanel() {
+  document.getElementById('sc').textContent  = score;
+  document.getElementById('hi').textContent  = best;
+  document.getElementById('lvl').textContent = level;
+  const h={3:'❤️❤️❤️',2:'❤️❤️',1:'❤️',0:'💔'};
+  document.getElementById('lv').textContent  = h[Math.max(0,lives)]??'💔';
+  const dot=document.getElementById('dot'), dtxt=document.getElementById('dtxt');
+  if(faceOn){ dot.classList.add('on'); dtxt.textContent='وجه مكتشف ✓'; dtxt.style.color='#2ed573'; }
+  else      { dot.classList.remove('on'); dtxt.textContent='لا يوجد وجه'; dtxt.style.color='#bbb'; }
+}
+
+function toast(text, color, dur) {
+  toasts.push({text, color, x:W/2, y:H/2-50, life:dur, max:dur});
+}
+
+function spawnObs() {
+  const spd = 2.8 + (level-1)*.4;
+  const gap = Math.max(90, 160 - level*8) + Math.random()*30;
+  const top = 30 + Math.random()*(H - gap - 60);
+  const col = OBS_COLORS[colorIdx % OBS_COLORS.length];
+  colorIdx++;
+  obs.push({x:W+60, gt:top, gb:top+gap, w:60, spd, col, passed:false});
+}
+
+function burst(x, y, cols, n=14) {
+  for(let i=0;i<n;i++){
+    const a=Math.random()*Math.PI*2, s=3+Math.random()*7;
+    const c=Array.isArray(cols)?cols[i%cols.length]:cols;
+    parts.push({x,y,vx:Math.cos(a)*s,vy:Math.sin(a)*s-3,
+                r:3+Math.random()*6, col:c, life:1, dec:.022+Math.random()*.018,
+                shape: Math.random()>.5 ? 'circle' : 'star'});
+  }
+}
+
+function showGameOver() {
+  const emoji = score >= best && score > 0 ? '🏆' : score > 5 ? '😊' : '😢';
+  document.getElementById('go-emoji').textContent      = emoji;
+  document.getElementById('go-score-val').textContent  = score;
+  document.getElementById('go-best-val').textContent   = best;
+  const el = document.getElementById('gameover');
+  el.classList.remove('show');
+  void el.offsetWidth;
+  el.classList.add('show');
+  sndOver();
+}
+
+function restartGame() {
+  document.getElementById('gameover').classList.remove('show');
+  AC.resume();
+  startGame();
+  burst(W/2, H/2, ['#ff6b6b','#feca57','#48dbfb','#ff9ff3','#54a0ff'], 20);
+}
+
+// ─── Update ──────────────────────────────────────────────────────────────────
+function update() {
+  if(state!==S.PLAY) return;
+  tick++;
+
+  // Clouds
+  clouds.forEach(c=>{ c.x -= c.spd; if(c.x+c.w<0) c.x=W+20; });
+
+  // Ball follow nose
+  const k = faceOn ? .22 : .06;
+  ball.tx = noseX; ball.ty = noseY;
+  ball.x += (ball.tx - ball.x)*k;
+  ball.y += (ball.ty - ball.y)*k;
+  ball.x = Math.max(ball.r+2, Math.min(W-ball.r-2, ball.x));
+  ball.y = Math.max(ball.r+2, Math.min(H-ball.r-2, ball.y));
+
+  // Squish spring
+  ball.squishV += (1 - ball.squish) * .18;
+  ball.squishV *= .72;
+  ball.squish += ball.squishV;
+
+  // Level
+  const nl = Math.floor(score/8)+1;
+  if(nl>level){
+    level=nl; updatePanel();
+    toast(`مستوى ${level}! 🎉`, '#54a0ff', 90);
+    burst(W/2,H/2,['#feca57','#ff9ff3','#54a0ff'],24);
+    sndLevelUp();
+  }
+
+  // Spawn
+  if(--spawnIn<=0){ spawnObs(); spawnIn=Math.max(45,95-level*5); }
+
+  // Obstacles
+  for(let i=obs.length-1;i>=0;i--){
+    const o=obs[i];
+    o.x -= o.spd;
+
+    if(!o.passed && o.x+o.w < ball.x-ball.r){
+      o.passed=true; score++;
+      if(score>best) best=score;
+      updatePanel();
+      burst(o.x+o.w+10, H/2, ['#1dd1a1','#feca57'], 9);
+      ball.squishV = -.35;
+      sndScore();
+    }
+
+    if(o.x+o.w < -15){ obs.splice(i,1); continue; }
+
+    if(!invincible){
+      const inX = ball.x+ball.r*.78 > o.x && ball.x-ball.r*.78 < o.x+o.w;
+      if(inX && (ball.y-ball.r*.78 < o.gt || ball.y+ball.r*.78 > o.gb)){
+        lives--; updatePanel();
+        burst(ball.x,ball.y,['#ff6b6b','#ee5a24'],18);
+        toast('آخ! 💥', '#ff6b6b', 45);
+        ball.squishV = .5;
+        invincible=true; invF=110;
+        sndHit();
+        if(lives<=0){ state=S.OVER; if(score>best)best=score; updatePanel(); setTimeout(showGameOver,600); }
+        break;
+      }
+    }
+  }
+
+  if(invincible && --invF<=0) invincible=false;
+
+  // Particles
+  for(let i=parts.length-1;i>=0;i--){
+    const p=parts[i];
+    p.x+=p.vx; p.y+=p.vy; p.vy+=.3; p.vx*=.95; p.life-=p.dec;
+    if(p.life<=0) parts.splice(i,1);
+  }
+
+  // Toasts
+  for(let i=toasts.length-1;i>=0;i--){
+    toasts[i].life--; toasts[i].y-=.7;
+    if(toasts[i].life<=0) toasts.splice(i,1);
+  }
+}
+
+// ─── Draw ─────────────────────────────────────────────────────────────────────
+function draw() {
+  ctx.clearRect(0,0,W,H);
+  drawBackground();
+  if(lastImg) drawCamera();
+  drawClouds();
+  if(faceBox) drawFaceBox();
+  if(state===S.WAIT){ drawWait(); return; }
+  drawObs();
+  drawParts();
+  drawBall();
+  drawToasts();
+  if(!faceOn && state===S.PLAY) drawNoFaceWarn();
+}
+
+function drawBackground() {
+  // Sky gradient
+  const sky = ctx.createLinearGradient(0,0,0,H);
+  sky.addColorStop(0,'#87CEEB');
+  sky.addColorStop(1,'#E0F7FF');
+  ctx.fillStyle = sky;
+  ctx.fillRect(0,0,W,H);
+}
+
+function drawCamera() {
+  // Draw camera feed with reduced opacity so the sky shows through nicely
+  ctx.save();
+  ctx.globalAlpha = .55;
+  ctx.translate(W,0); ctx.scale(-1,1);
+  ctx.drawImage(lastImg,0,0,W,H);
+  ctx.restore();
+}
+
+function drawClouds() {
+  ctx.globalAlpha = .75;
+  clouds.forEach(c => {
+    ctx.fillStyle = '#fff';
+    ctx.shadowColor='rgba(0,0,0,.08)'; ctx.shadowBlur=8;
+    // Draw fluffy cloud
+    const cx=c.x, cy=c.y, s=c.w/90;
+    ctx.beginPath();
+    ctx.arc(cx,cy,22*s,0,Math.PI*2);
+    ctx.arc(cx+28*s,cy-6*s,18*s,0,Math.PI*2);
+    ctx.arc(cx+50*s,cy,20*s,0,Math.PI*2);
+    ctx.arc(cx+24*s,cy+12*s,16*s,0,Math.PI*2);
+    ctx.fill();
+    ctx.shadowBlur=0;
+  });
+  ctx.globalAlpha=1;
+}
+
+function drawFaceBox() {
+  ctx.strokeStyle='rgba(46,213,115,.8)';
+  ctx.lineWidth=2.5;
+  ctx.setLineDash([8,4]);
+  ctx.strokeRect(faceBox.x1,faceBox.y1,faceBox.x2-faceBox.x1,faceBox.y2-faceBox.y1);
+  ctx.setLineDash([]);
+}
+
+function drawWait() {
+  ctx.fillStyle='rgba(255,255,255,.6)';
+  ctx.fillRect(0,0,W,H);
+  ctx.textAlign='center';
+
+  // Bouncing title
+  const bounce = Math.sin(Date.now()*.003)*8;
+  ctx.font='bold 50px Fredoka One, Arial';
+  ctx.fillStyle='#ff6b6b';
+  ctx.shadowColor='rgba(255,107,107,.4)'; ctx.shadowBlur=16;
+  ctx.fillText('🌟 NOSE GAME 🌟', W/2, H/2-70+bounce);
+  ctx.shadowBlur=0;
+
+  ctx.font='22px Fredoka One, Arial'; ctx.fillStyle='#555';
+  ctx.fillText('حرك أنفك لتحريك النجمة!', W/2, H/2-10);
+  ctx.fillText('تجنب العوائق الملونة 🎨', W/2, H/2+28);
+
+  if(Math.sin(Date.now()/380)>0){
+    ctx.font='bold 16px Fredoka One, Arial'; ctx.fillStyle='#2ed573';
+    ctx.shadowColor='#2ed573'; ctx.shadowBlur=10;
+    ctx.fillText('✦ ضع وجهك أمام الكاميرا للبدء ✦', W/2, H/2+75);
+    ctx.shadowBlur=0;
+  }
+  ctx.textAlign='left';
+}
+
+function drawObs() {
+  obs.forEach(o => {
+    const [c1,c2] = o.col;
+    const g = ctx.createLinearGradient(o.x,0,o.x+o.w,0);
+    g.addColorStop(0,c1); g.addColorStop(1,c2);
+
+    // Top block
+    ctx.fillStyle=g;
+    ctx.beginPath(); rRect(o.x-2,0,o.w+4,o.gt,8); ctx.fill();
+
+    // Bottom block
+    ctx.beginPath(); rRect(o.x-2,o.gb,o.w+4,H-o.gb,8); ctx.fill();
+
+    // Stripes
+    ctx.save();
+    ctx.globalAlpha=.18;
+    ctx.fillStyle='#fff';
+    for(let s=-60;s<H;s+=22){
+      ctx.fillRect(o.x, s, o.w*1.2, 11);
+    }
+    ctx.restore();
+
+    // Border
+    ctx.strokeStyle='rgba(255,255,255,.7)'; ctx.lineWidth=2;
+    ctx.beginPath(); rRect(o.x-2,0,o.w+4,o.gt,8); ctx.stroke();
+    ctx.beginPath(); rRect(o.x-2,o.gb,o.w+4,H-o.gb,8); ctx.stroke();
+
+    // Cute cap on top obstacle bottom edge
+    ctx.fillStyle=c2;
+    ctx.beginPath(); rRect(o.x-4,o.gt-14,o.w+8,18,6); ctx.fill();
+    ctx.strokeStyle='rgba(255,255,255,.6)'; ctx.lineWidth=1.5;
+    ctx.beginPath(); rRect(o.x-4,o.gt-14,o.w+8,18,6); ctx.stroke();
+
+    // Cute cap on bottom obstacle top edge
+    ctx.fillStyle=c2;
+    ctx.beginPath(); rRect(o.x-4,o.gb-4,o.w+8,18,6); ctx.fill();
+    ctx.beginPath(); rRect(o.x-4,o.gb-4,o.w+8,18,6); ctx.stroke();
+  });
+}
+
+function drawParts() {
+  parts.forEach(p => {
+    ctx.globalAlpha = p.life;
+    ctx.fillStyle = p.col;
+    if(p.shape==='star') drawStarShape(p.x,p.y,p.r,p.r*.45,5);
+    else { ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fill(); }
+  });
+  ctx.globalAlpha=1;
+}
+
+function drawBall() {
+  const alpha = invincible ? (.35+.65*Math.abs(Math.sin(tick*.25))) : 1;
+  ctx.globalAlpha = alpha;
+
+  const sx = 1 + (ball.squish-1)*.5;   // squish x
+  const sy = 1 - (ball.squish-1)*.5;   // squish y
+
+  ctx.save();
+  ctx.translate(ball.x, ball.y);
+  ctx.scale(sx, sy);
+
+  // Shadow
+  ctx.fillStyle='rgba(0,0,0,.15)';
+  ctx.beginPath(); ctx.ellipse(0,ball.r+4,ball.r*.9,ball.r*.25,0,0,Math.PI*2); ctx.fill();
+
+  // Body glow
+  const glow=ctx.createRadialGradient(0,0,0,0,0,ball.r*2.2);
+  glow.addColorStop(0,'rgba(255,220,50,.55)');
+  glow.addColorStop(1,'rgba(255,180,0,0)');
+  ctx.fillStyle=glow;
+  ctx.beginPath(); ctx.arc(0,0,ball.r*2.2,0,Math.PI*2); ctx.fill();
+
+  // Star body
+  ctx.fillStyle='#FFD700';
+  ctx.strokeStyle='#FF9500';
+  ctx.lineWidth=2.5;
+  drawStarShape(0,0,ball.r*1.1,ball.r*.48,5);
+  ctx.fill(); ctx.stroke();
+
+  // Face - eyes
+  ctx.fillStyle='#fff';
+  ctx.beginPath(); ctx.arc(-6,-3,5.5,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(6,-3,5.5,0,Math.PI*2); ctx.fill();
+
+  ctx.fillStyle='#333';
+  const eyeOff = faceOn ? {x:.5,y:.5} : {x:0,y:0};
+  ctx.beginPath(); ctx.arc(-6+eyeOff.x,-3+eyeOff.y,3,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(6+eyeOff.x,-3+eyeOff.y,3,0,Math.PI*2); ctx.fill();
+
+  // Shine
+  ctx.fillStyle='rgba(255,255,255,.9)';
+  ctx.beginPath(); ctx.arc(-7,-5,1.5,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(5,-5,1.5,0,Math.PI*2); ctx.fill();
+
+  // Smile
+  ctx.strokeStyle='#a0522d'; ctx.lineWidth=2; ctx.lineCap='round';
+  ctx.beginPath();
+  ctx.arc(0,1,5.5, .2, Math.PI-.2);
+  ctx.stroke();
+
+  // Blush
+  ctx.fillStyle='rgba(255,130,130,.4)';
+  ctx.beginPath(); ctx.ellipse(-9,3,4,2.5,0,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(9,3,4,2.5,0,0,Math.PI*2); ctx.fill();
+
+  ctx.restore();
+  ctx.globalAlpha=1;
+}
+
+function drawStarShape(x,y,r,ir,points) {
+  ctx.beginPath();
+  for(let i=0;i<points*2;i++){
+    const rad=(i*Math.PI)/points - Math.PI/2;
+    const dist = i%2===0 ? r : ir;
+    i===0 ? ctx.moveTo(x+Math.cos(rad)*dist, y+Math.sin(rad)*dist)
+           : ctx.lineTo(x+Math.cos(rad)*dist, y+Math.sin(rad)*dist);
+  }
+  ctx.closePath();
+}
+
+function drawToasts() {
+  toasts.forEach(t => {
+    ctx.globalAlpha = Math.min(1, t.life/20);
+    ctx.font='bold 34px Fredoka One, Arial';
+    ctx.textAlign='center';
+    ctx.fillStyle=t.col;
+    ctx.shadowColor=t.col; ctx.shadowBlur=16;
+    ctx.fillText(t.text, t.x, t.y);
+    ctx.shadowBlur=0;
+  });
+  ctx.globalAlpha=1; ctx.textAlign='left';
+}
+
+function drawNoFaceWarn() {
+  ctx.fillStyle='rgba(255,255,255,.4)';
+  ctx.fillRect(0,0,W,H);
+  ctx.font='bold 22px Fredoka One, Arial';
+  ctx.textAlign='center'; ctx.fillStyle='#ff6b6b';
+  ctx.fillText('⚠️ ضع وجهك أمام الكاميرا!', W/2, H/2);
+  ctx.textAlign='left';
+}
+
+function rRect(x,y,w,h,r) {
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.lineTo(x+w-r,y); ctx.quadraticCurveTo(x+w,y,x+w,y+r);
+  ctx.lineTo(x+w,y+h-r); ctx.quadraticCurveTo(x+w,y+h,x+w-r,y+h);
+  ctx.lineTo(x+r,y+h); ctx.quadraticCurveTo(x,y+h,x,y+h-r);
+  ctx.lineTo(x,y+r); ctx.quadraticCurveTo(x,y,x+r,y);
+  ctx.closePath();
+}
+
+// ─── Loop ─────────────────────────────────────────────────────────────────────
+(function loop(){ update(); draw(); requestAnimationFrame(loop); })();
+</script>
+</body>
+</html>
